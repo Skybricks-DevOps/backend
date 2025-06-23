@@ -1,0 +1,31 @@
+name: Build and Push Docker image (backend)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set lowercase owner
+        id: vars
+        run: |
+          echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile -t ghcr.io/${{ env.OWNER_LC }}/backend:latest -t ghcr.io/${{ env.OWNER_LC }}/backend:${{ env.SHORT_SHA }} .
+
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/${{ env.OWNER_LC }}/backend:latest
+          docker push ghcr.io/${{ env.OWNER_LC }}/backend:${{ env.SHORT_SHA }}

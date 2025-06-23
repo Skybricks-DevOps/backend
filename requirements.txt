@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+psycopg2-binary
+pydantic
+pytest
+pytest-mock
+httpx
+pytest-cov
+requests
