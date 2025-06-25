@@ -34,9 +34,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Show current directory and files
+        run: |
+          pwd
+          ls -l
+          ls -l app
+          ls -l tests
+
       - name: Run unit tests
         env:
-          PYTHONPATH: /app
+          PYTHONPATH: ${{ github.workspace }}
         run: pytest --maxfail=1 --disable-warnings --cov=app
 
       - name: Initialize CodeQL
