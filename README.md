@@ -10,7 +10,7 @@ Ce dossier contient l'API backend de gestion des employés, développée avec **
 - Connexion à PostgreSQL (paramétrable via variables d'environnement)
 - Tests unitaires automatisés avec Pytest et FastAPI TestClient (mock de la base)
 - Dockerisation prête pour la production
-- Intégration CI/CD (GitHub Actions: lint, tests, analyse sécurité, build/push image)
+- Intégration CI/CD complète (lint, tests, analyse sécurité, build/push image)
 
 ---
 
@@ -52,15 +52,6 @@ CREATE TABLE employees (
 - `DB_USER` (par défaut: postgres)
 - `DB_PASSWORD` (par défaut: postgres)
 
-4. **Lancer l'API**
-
-```bash
-uvicorn app.main:app --reload
-```
-
-L'API sera disponible sur [http://localhost:8000](http://localhost:8000).
-
----
 
 ## Utilisation de l'API
 
@@ -69,20 +60,22 @@ L'API sera disponible sur [http://localhost:8000](http://localhost:8000).
 
 ---
 
-## Tests
+## Tests unitaires
 
-Les tests unitaires sont situés dans `tests/test_main.py` et utilisent Pytest avec un mock de la connexion PostgreSQL (aucune base réelle requise pour les tests).
+Les tests sont situés dans `tests/test_main.py` et couvrent les endpoints principaux.  
+Ils utilisent un mock de la connexion PostgreSQL pour garantir l'indépendance vis-à-vis d'une base réelle.
 
-Pour lancer les tests :
+### Lancer les tests
 
 ```bash
 pytest
 ```
 
-- Les tests vérifient :
-  - La récupération de la liste des employés (`GET /employees`)
-  - L'ajout d'un employé (`POST /employees`)
-  - Le mock de la base évite toute dépendance à un vrai serveur PostgreSQL
+### Détail des tests
+
+- Vérification de la récupération de la liste des employés (`GET /employees`)
+- Vérification de l'ajout d'un employé (`POST /employees`)
+- Les mocks garantissent que les tests sont rapides et fiables, sans dépendance à un serveur PostgreSQL.
 
 ---
 
@@ -90,38 +83,59 @@ pytest
 
 Le backend est prêt à être conteneurisé pour la production.
 
-### Exemple de build et run :
+### Exemple de build et run
 
 ```bash
 docker build -t employee-backend .
 docker run -e DB_HOST=... -e DB_NAME=... -e DB_USER=... -e DB_PASSWORD=... -p 8000:8000 employee-backend
 ```
 
-- Le `Dockerfile` :
-  - Utilise `python:3.9-slim`
-  - Installe les dépendances
-  - Copie le code source et les tests
-  - Définit `PYTHONPATH` pour les imports relatifs
-  - Expose le port 8000
-  - Lance l'API avec Uvicorn
+#### Détail du Dockerfile
+
+- Utilise `python:3.9-slim` pour un conteneur léger
+- Installe les dépendances Python
+- Copie tout le code source et les tests
+- Définit `PYTHONPATH` pour les imports relatifs
+- Expose le port 8000
+- Lance l'API avec Uvicorn
 
 ---
 
-## CI/CD et GitHub Actions
+## Intégration continue (CI) & Analyse de code
 
-Des workflows GitHub Actions automatisent la qualité et la sécurité du code :
+L'intégration continue est assurée via **GitHub Actions** avec plusieurs workflows dédiés au backend :
 
-- **Lint, tests, analyse CodeQL** (`.github/workflows/codeql-backend.yml`)
-  - Lint et tests à chaque push/PR
-  - Analyse de sécurité CodeQL
+### Objectifs
 
-- **Scan Trivy** (`.github/workflows/trivy-backend.yml`)
-  - Scan de sécurité de l'image Docker après succès des tests
+- Automatiser la qualité et la sécurité du code à chaque push/PR
+- Garantir la non-régression via les tests unitaires
+- Générer et publier une image Docker sécurisée
 
-- **Build & Push Docker** (`.github/workflows/docker-publish.yml`)
-  - Build et push de l'image sur GitHub Container Registry (GHCR) si le scan Trivy est OK
+### Étapes de la pipeline CI
 
-- Les secrets nécessaires (tokens, credentials Azure) sont à fournir dans les paramètres GitHub Actions.
+- **Lint** du code Python : vérification automatique du style et des erreurs potentielles dans le code source Python
+- **Tests unitaires** avec Pytest et rapport de couverture (pytest-cov)
+- **Analyse statique de sécurité** avec CodeQL (détection de vulnérabilités et mauvaises pratiques)
+- **Scan de vulnérabilités** de l'image Docker avec Trivy
+- **Build** de l'image Docker backend
+- **Push** de l'image Docker sur GitHub Container Registry (GHCR) si tout est OK
+
+### Fichiers de workflow principaux
+
+- `.github/workflows/codeql-backend.yml` : Lint, tests, analyse CodeQL
+- `.github/workflows/trivy-backend.yml` : Scan Trivy de l'image Docker
+- `.github/workflows/docker-publish.yml` : Build & push de l'image Docker backend
+
+### Secrets nécessaires
+
+- Credentials Azure 
+- Token GitHub pour push sur GHCR
+
+### Livrables
+
+- Pipeline CI fonctionnelle
+- Images Docker backend disponibles sur GHCR
+- Rapport de tests et de couverture généré à chaque exécution de la CI
 
 ---
 
@@ -132,5 +146,7 @@ Des workflows GitHub Actions automatisent la qualité et la sécurité du code :
 - `requirements.txt` : Dépendances Python
 - `Dockerfile` : Image Docker pour le backend
 - `.github/workflows/` : Pipelines CI/CD GitHub Actions
+
+---
 
 
