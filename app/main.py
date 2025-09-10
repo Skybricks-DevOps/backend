@@ -14,9 +14,11 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
 def get_connection():
     return psycopg2.connect(
         host=DB_HOST,
+        port=int(os.getenv("DB_PORT", "5432")),
         dbname=DB_NAME,
         user=DB_USER,
-        password=DB_PASSWORD
+        password=DB_PASSWORD,
+        sslmode=os.getenv("DB_SSLMODE", "require")
     )
 
 class Employee(BaseModel):
